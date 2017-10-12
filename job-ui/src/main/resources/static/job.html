@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1,IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>任务</title>
+
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <script type="text/javascript" src="layui/layui.js"></script>
+    <script type="text/javascript" src="layui-ext.js"></script>
+</head>
+
+<body>
+
+<!-- 头部固定区域 -->
+<ul class="layui-nav">
+    <li class="layui-nav-item layui-this"><a href="job.html">任务</a></li>
+    <li class="layui-nav-item"><a href="joblog.html">任务日志</a></li>
+    <li class="layui-nav-item"><a href="contact.html">通讯录</a></li>
+</ul>
+<!-- 头部固定区域 -->
+
+
+<!-- 内容主体区域 -->
+<div class="layui-fluid" style="padding-top:15px;">
+
+    <div class="layui-btn-group">
+        <button class="layui-btn" id="add">添加</button>
+    </div>
+
+    <table class="layui-table" lay-data="{id:'list', data:[]}" lay-filter="list">
+        <thead>
+        <tr>
+            <th lay-data="{toolbar:'#tpl_list_tool', width:210, align:'center'}">操作</th>
+            <th lay-data="{field:'isEnableText', width:60}">启用</th>
+            <th lay-data="{field:'job', width:380}">任务</th>
+            <th lay-data="{field:'jobParams', width:260}">参数</th>
+            <th lay-data="{field:'trigger', width:180}">触发器</th>
+            <th lay-data="{field:'nextFireTimeText', width:165}">下次运行时间</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+<!-- 内容主体区域 -->
+
+
+<!-- 内容模板区域 -->
+<script type="text/html" id="tpl_list_tool">
+    <a class="layui-btn layui-btn-mini" lay-event="update">编辑</a>
+    {{#  if(d.isRunning == '0' && d.isEnable == '1'){ }}
+    <a class="layui-btn layui-btn-mini" lay-event="start">开始</a>
+    {{#  } }}
+    {{#  if(d.isRunning == '1'){ }}
+    <a class="layui-btn layui-btn-mini" lay-event="stop">停止</a>
+    {{#  } }}
+    <a class="layui-btn layui-btn-mini" lay-event="run">执行</a>
+    <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="delete">删除</a>
+</script>
+
+<script type="text/html" id="tpl_update">
+    <form class="layui-form layui-fluid">
+        <div class="layui-form-item">
+            <label class="layui-form-label">启用</label>
+            <div class="layui-input-block">
+                <input type="radio" name="isEnable" value="1" title="是" id="is-enable-1">
+                <input type="radio" name="isEnable" value="0" title="否" id="is-enable-0">
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务名</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="jobName" value="{{ d.jobName }}"
+                               lay-verify="required" id="job-name">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务组</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="jobGroup" value="{{ d.jobGroup }}"
+                               lay-verify="required">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务类名</label>
+            <div class="layui-input-block">
+                <input class="layui-input" type="text" name="jobClassName" value="{{ d.jobClassName }}"
+                       lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务参数</label>
+            <div class="layui-input-block">
+                <input class="layui-input" type="text" name="jobParams" value="{{ d.jobParams }}"
+                       placeholder="例如：p1=a;p2=b">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">触发器类型</label>
+            <div class="layui-input-block">
+                <select class="layui-input" name="triggerType" id="trigger-type" lay-filter="trigger-type">
+                    <option value="SIMPLE">SIMPLE</option>
+                    <option value="CRON">CRON</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">重复次数</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="triggerRepeat" value="{{ d.triggerRepeat }}"
+                               placeholder="0">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">重复间隔</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="triggerInterval" value="{{ d.triggerInterval }}"
+                               placeholder="重复次数大于 0 时，此值必须大于 0">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">表达式</label>
+            <div class="layui-input-block">
+                <input class="layui-input" type="text" name="triggerCron" value="{{ d.triggerCron }}"
+                       placeholder="例如：0 0 */1 * * ?">
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">开始时间</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="triggerStartTimeText"
+                               value="{{ d.triggerStartTimeText }}" placeholder="例如：2017-10-01 00:00:00"
+                               id="trigger-start-time-text">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">结束时间</label>
+                    <div class="layui-input-block">
+                        <input class="layui-input" type="text" name="triggerStopTimeText"
+                               value="{{ d.triggerStopTimeText }}" placeholder="例如：2017-10-07 23:59:59"
+                               id="trigger-stop-time-text">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md3">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">JAR</label>
+                    <div class="layui-input-block">
+                        <button type="button" class="layui-btn" id="jar">上传文件</button>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md9">
+                <input class="layui-input" name="jarPath" value="{{ d.jarPath }}" readonly="true" id="jar-path">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-filter="submit" lay-submit>提交</button>
+            </div>
+        </div>
+    </form>
+</script>
+<!-- 内容模板区域 -->
+
+
+<script type="text/javascript">
+    layui.use(['jquery', 'laytpl', 'form', 'laydate', 'table', 'upload'], function () {
+        var $ = layui.jquery;
+        var laytpl = layui.laytpl;
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var table = layui.table;
+        var upload = layui.upload;
+        var http = layui.http;
+
+        loadData();
+
+        $('#add').click(function () {
+            var d = {
+                jobName: '',
+                jobGroup: 'DEFAULT',
+                jobClassName: '',
+                jobParams: '',
+                triggerType: 'SIMPLE',
+                triggerRepeat: 0,
+                triggerInterval: 0,
+                triggerCron: '',
+                triggerStartTimeText: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                triggerStopTimeText: '',
+                jarPath: '',
+                isEnable: '0'
+            };
+            laytpl(tpl_update.innerHTML).render(d, function (html) {
+                layer.open({
+                    type: 1,
+                    area: '800px',
+                    title: '添加',
+                    content: html
+                });
+                $('#is-enable-' + d.isEnable).attr("checked", "checked");
+                $('#trigger-type option[value=' + d.triggerType + ']').attr("selected", "selected");
+                laydate.render({
+                    elem: '#trigger-start-time-text',
+                    type: 'datetime'
+                });
+                laydate.render({
+                    elem: '#trigger-stop-time-text',
+                    type: 'datetime'
+                });
+                upload.render({
+                    elem: '#jar',
+                    url: 'schedule/uploadJar',
+                    accept: 'file',
+                    data: d,
+                    before: function (e) {
+                        layer.load();
+                    },
+                    done: function (res, index, upload) {
+                        $('#jar-path').val(res.data);
+                        layer.closeAll('loading');
+                    },
+                    error: function (index, upload) {
+                        layer.closeAll('loading');
+                    }
+                });
+                form.render();
+            });
+        });
+
+        form.on('submit(submit)', function (e) {
+            if (e.field.triggerStartTimeText) {
+                e.field.triggerStartTime = new Date(e.field.triggerStartTimeText).getTime();
+            }
+            if (e.field.triggerStopTimeText) {
+                e.field.triggerStopTime = new Date(e.field.triggerStopTimeText).getTime();
+            }
+            http.post('schedule/save', e.field, function (res) {
+                layer.msg('操作完成', {time: 1000});
+                loadData();
+                layer.closeAll('page');
+            });
+            return false;
+        });
+
+        table.on('tool(list)', function (e) {
+            var d = e.data;
+            if (e.event == 'update') {
+                laytpl(tpl_update.innerHTML).render(d, function (html) {
+                    layer.open({
+                        type: 1,
+                        area: '800px',
+                        title: '详情',
+                        content: html
+                    });
+                    $('#is-enable-' + d.isEnable).attr("checked", "checked");
+                    $('#trigger-type option[value=' + d.triggerType + ']').attr("selected", "selected");
+                    laydate.render({
+                        elem: '#trigger-start-time-text',
+                        type: 'datetime'
+                    });
+                    laydate.render({
+                        elem: '#trigger-stop-time-text',
+                        type: 'datetime'
+                    });
+                    upload.render({
+                        elem: '#jar',
+                        url: 'schedule/uploadJar',
+                        accept: 'file',
+                        data: d,
+                        before: function (e) {
+                            layer.load();
+                        },
+                        done: function (res, index, upload) {
+                            $('#jar-path').val(res.data);
+                            layer.closeAll('loading');
+                        },
+                        error: function (index, upload) {
+                            layer.closeAll('loading');
+                        }
+                    });
+                    form.render();
+                });
+            } else if (e.event == 'start') {
+                http.post('schedule/start', {jobName: d.jobName}, function (res) {
+                    layer.msg('操作完成', {time: 1000});
+                    loadData();
+                });
+            } else if (e.event == 'stop') {
+                http.post('schedule/stop', {jobName: d.jobName}, function (res) {
+                    layer.msg('操作完成', {time: 1000});
+                    loadData();
+                });
+            } else if (e.event == 'run') {
+                http.post('schedule/run', {jobName: d.jobName}, function (res) {
+                    layer.msg('操作完成', {time: 1000});
+                    loadData();
+                });
+            } else if (e.event == 'delete') {
+                layer.confirm('<p>确定删除吗？</p><p style="font-size:10px; color:#FF5722;">此操作会同时删除相应的日志</p>', function (z) {
+                    http.post('schedule/delete', {jobName: d.jobName}, function (res) {
+                        loadData();
+                        layer.close(z);
+                    });
+                });
+            }
+        });
+
+        function loadData() {
+            http.post('schedule/list', function (res) {
+                table.reload('list', {
+                    data: dataConverter(res.data)
+                });
+            });
+        }
+
+        function dataConverter(data) {
+            for (var i = 0; i < data.length; i++) {
+                var d = data[i];
+                d.job = d.jobName + ' | ' + d.jobGroup + ' | ' + d.jobClassName;
+                if (d.triggerType == 'SIMPLE') {
+                    d.trigger = d.triggerRepeat + " | " + d.triggerInterval;
+                } else if (d.triggerType == 'CRON') {
+                    d.trigger = d.triggerCron;
+                }
+                d.triggerStartTimeText = '';
+                if (d.triggerStartTime) {
+                    d.triggerStartTimeText = new Date(d.triggerStartTime).format('yyyy-MM-dd HH:mm:ss');
+                }
+                d.triggerStopTimeText = '';
+                if (d.triggerStopTime) {
+                    d.triggerStopTimeText = new Date(d.triggerStopTime).format('yyyy-MM-dd HH:mm:ss');
+                }
+                d.isEnableText = d.isEnable == '1' ? '是' : '否';
+                d.isRunningText = d.isRunning == '1' ? '是' : '否';
+                d.nextFireTimeText = '';
+                if (d.nextFireTime) {
+                    d.nextFireTimeText = new Date(d.nextFireTime).format('yyyy-MM-dd HH:mm:ss');
+                }
+            }
+            return data;
+        }
+    });
+</script>
+
+</body>
+
+</html>
