@@ -1,7 +1,7 @@
 # Job 定时任务
 
 - 上传 Jar 包，通过 Quartz 定时执行
-- Jar 包支持 SpringBoot特性
+- Jar 包支持 SpringBoot 特性
 - 独立日志、异常邮件通知
 - 一个任务一个类加载器，独立的 IoC 上下文
 
@@ -52,17 +52,9 @@ job-example 目录下有一些例子供大家参考，以下是 job-example-java
 </dependency>
 ```
 
-打印`Hello World !`
+打印`Hello World !`：
 
 ```java
-package com.conanli.job.job;
-
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Main implements Job {
 
     Logger logger = LoggerFactory.getLogger(getClass());
@@ -75,3 +67,30 @@ public class Main implements Job {
 ```
 
 Jar 包放入`job-api`工程中运行，共享它的类依赖，因此我在打包时，使用了`maven-assembly-plugin`，把重复的依赖去掉，减少 Jar 包的大小
+
+测试：
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = JavaJobApplication.class)
+public class MainTest {
+
+    @Autowired
+    QuartzManager quartzManager;
+
+    @Test
+    public void test() throws Exception {
+        String jobName = "test";
+        String jobGroup = "example";
+        Class<? extends Job> jobClass = Main.class;
+        Map<String, Object> jobData = new HashMap<>();
+
+        quartzManager.addJob(jobName, jobGroup, jobClass, jobData);
+        quartzManager.triggerJob(jobName, jobGroup);
+
+        while (Thread.activeCount() > 1) {
+            Thread.yield();
+        }
+    }
+}
+```
