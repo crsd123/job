@@ -14,7 +14,7 @@ public class ScheduleSaveParams {
     private String jobName;
     @ApiModelProperty(value = "任务组", example = "DEFAULT")
     private String jobGroup;
-    @ApiModelProperty(value = "实现类名", example = "com.zhidian.cloud.job.job.Main")
+    @ApiModelProperty(value = "实现类名", example = "com.conanli.job.job.Main")
     private String jobClassName;
     @ApiModelProperty(value = "任务参数 p1=a;p2=b", example = "")
     private String jobParams;
