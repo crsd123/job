@@ -36,11 +36,11 @@ public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
                     if (e instanceof BusinessException) {
                         res = Response.failure(e.getMessage());
                     } else if (e instanceof HttpRequestMethodNotSupportedException) {
-                        res = Response.failure(HttpStatus.METHOD_NOT_ALLOWED.value(), String.format("不支持 %s 方式请求", ((HttpRequestMethodNotSupportedException) e).getMethod()));
+                        res = Response.failure(HttpStatus.METHOD_NOT_ALLOWED.value(), String.format("不支持 Request Method[%s]", request.getMethod()));
                     } else if (e instanceof HttpMediaTypeNotAcceptableException) {
-                        res = Response.failure(HttpStatus.NOT_ACCEPTABLE.value(), "不接受此内容类型");
-                    }  else if (e instanceof HttpMediaTypeNotSupportedException) {
-                        res = Response.failure(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(), String.format("不支持 %s 内容类型", ((HttpMediaTypeNotSupportedException) e).getContentType().getType()));
+                        res = Response.failure(HttpStatus.NOT_ACCEPTABLE.value(), String.format("不支持 Request Accept[%s]", request.getHeader("accept")));
+                    } else if (e instanceof HttpMediaTypeNotSupportedException) {
+                        res = Response.failure(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(), String.format("不支持 Request Content-Type[%s]", request.getContentType()));
                     } else {
                         res = Response.failure("服务器异常");
                         e.printStackTrace();
